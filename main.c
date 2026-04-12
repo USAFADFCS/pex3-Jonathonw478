@@ -71,7 +71,11 @@ int main(int argc, char **argv) {
     //       and allocate the faults[] array.  faults[f] will hold the
     //       total number of page faults that occur when f frames are
     //       available.  Use calloc so all entries start at zero.
+    PageQueue* Queue = pqInit(maxFrames); // is maxFrames the max size of the queue?
+    int* fault;
+    fault = (int*)calloc((maxFrames + 1), sizeof(int));
 
+    int depth = 0;
     // Process each memory access from the trace file
     while (!feof(ifp)) {
         fread(&traceRecord, sizeof(p2AddrTr), 1, ifp);
@@ -93,7 +97,17 @@ int main(int argc, char **argv) {
         //                    (fault for any allocation with fewer than d+1 frames)
         //
         //       Update faults[] accordingly.
-
+        depth = pqAccess(Queue, pageNum);
+        if (depth == -1){
+            for (int i = 0; i < maxFrames + 1; i++) {
+                fault[i]++;
+            }
+        }
+        else {
+            for (int i = 0; i < depth + 1; i++){
+                fault[i]++;
+            }
+        }
     }
 
     fprintf(stderr, "\n%lu total accesses processed\n", numAccesses);
@@ -108,6 +122,8 @@ int main(int argc, char **argv) {
 
     // TODO: Free your PageQueue and the faults[] array,
     //       then close the file.
-
+    pqFree(Queue);
+    free(fault);
+    fclose(ifp);
     return 0;
 }
