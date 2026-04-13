@@ -6,9 +6,11 @@
  * Purpose: Reads a BYU binary memory trace file and simulates
  *          LRU page replacement to measure fault rates across
  *          varying frame allocations.
- * Documentation:         if (newNode->next != NULL){
-            newNode->next->prev = newNode;
-        }
+ * Documentation:  I used the website https://www.programiz.com/dsa/doubly-linked-list to help me 
+ * create my functions for the doubly linked list. It provided steps for insertion and deletion 
+ * when using a doubly linked list. Ultimately I did not use my insertion function since I decided
+ * it would be easier to use an append. Due to this, the website only helped me understand how to insert
+ * at the tail and delete a node.
  * =========================================================== */
 #include <stdio.h>
 #include <stdlib.h>
