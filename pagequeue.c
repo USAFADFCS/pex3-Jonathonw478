@@ -9,7 +9,7 @@
  * =========================================================== */
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 #include "pagequeue.h"
 
 /**
@@ -19,7 +19,7 @@ PageQueue *pqInit(unsigned int maxSize) {
     // TODO: malloc a PageQueue, set head and tail to NULL,
     //       size to 0, maxSize to maxSize, and return the pointer
     PageQueue* Queue = NULL;
-    Queue = (PageQueue*)malloc(sizeof(PageQueue) * (maxSize + 1)); // check if i need this + 1?
+    Queue = (PageQueue*)malloc(sizeof(PageQueue)); // check if i need this + 1?
 
     if (Queue == NULL) {
         // Handle Failure
@@ -44,32 +44,41 @@ long pqAccess(PageQueue *pq, unsigned long pageNum) {
     //   - Remove the node from its current position and re-insert
     //     it at the tail (most recently used).
     //   - Return d.
-    //
+    
     // MISS path (page not found):
     //   - Allocate a new node for pageNum and insert it at the tail.
     //   - If size now exceeds maxSize, evict the head node (free it).
     //   - Return -1.
-    int curPosition = 0;
+    int depth = 0;
     PqNode* curNode = pq->tail;
+    int headPos = 0;
 
     if (curNode == NULL){
-        printf("List is Empty");
+        appendNode(pq, pageNum);
         return -1;
     }
 
-    while (curNode->pageNum != pageNum){
-        if (curPosition == pq->size-1){ // check if size - 1 is correct here...
-            return -1;
+    while (curNode != NULL){
+        if (curNode->pageNum == pageNum){
+            // HIT
+            deleteNode(pq, pq->size - depth - 1);
+            appendNode(pq,pageNum);
+            return depth;
         }
         curNode = curNode->prev;
-        curPosition++;
+        depth++;
     }
+    // MISS
+    appendNode(pq,pageNum);
 
-    return curPosition;
+    if (pq->size > pq->maxSize) {
+        deleteNode(pq, headPos);
+    }
+    return -1;
 }
 
 /**
- * @brief Free all nodes in the queue and reset it to empty
+ * @brief Free all nodes in the queue and reset it to  empty
  */
 void pqFree(PageQueue *pq) {
     // TODO: Walk from head to tail, free each node, then free
@@ -122,3 +131,153 @@ void pqPrint(PageQueue *pq) {
         count++;
     }
 }
+
+/**
+ * @brief - allocates a Node and returns a pointer to it
+ */
+PqNode* createNode(unsigned long pageNum) {
+    PqNode* newNode = malloc(sizeof(PqNode));
+    newNode->pageNum = pageNum;
+    return newNode;
+}
+
+/**
+ * @brief - addes a new node to the end of the queue
+ * */
+void appendNode(PageQueue* pq, unsigned long pageNum){
+    PqNode* newNode = createNode(pageNum);
+    newNode->next = NULL;
+    newNode->prev = pq->tail;
+    if (pq->tail != NULL){
+        pq->tail->next = newNode;
+    }
+    else {
+        pq->head = newNode;
+    }
+    pq->tail = newNode;
+    pq->size++;
+}
+
+/**
+ * @brief  - deletes a node in the queue
+* */
+void deleteNode(PageQueue* pq, int position) {
+
+    PqNode* curNode = pq->head;
+    int length = pq->size;
+    
+    // Check if list is empty
+    if (curNode == NULL){
+        printf("List is Empty\n");
+        exit(1);
+    }
+
+    // Check if position outside of list
+    if (position < 0 || position >= length) {
+        printf("Position not part of list");
+        exit(1);
+    }
+
+    // Check if position is the only remaining element
+    if ((pq->head) == (pq->tail)){
+        free(pq->head);
+        pq->head = NULL;
+        pq->tail = NULL;
+        pq->size--;
+    }   
+
+    // Check if position is the first element in list
+    else if (position == 0){
+        PqNode* tempPtr = pq->head;
+        pq->head = pq->head->next;
+        pq->head->prev = NULL;
+        free(tempPtr);
+    }
+
+    // Check if position is last element in list
+    else if (position == length - 1){
+        PqNode* nodeBeforeDelete = pq->head;
+
+        while(nodeBeforeDelete->next != pq->tail){
+            nodeBeforeDelete = nodeBeforeDelete->next;
+        }
+        PqNode* oldTail = pq->tail; // this was causing me trouble, forgot to free old tail
+        nodeBeforeDelete->next = NULL;
+        pq->tail = nodeBeforeDelete;
+        free(oldTail);
+    }
+
+    // Delete something in the internal part of list
+    else {
+        PqNode* tempPtr = pq->head;
+        PqNode* nodeBeforeDelete = NULL;
+        int curPosition = 0;
+
+        while(curPosition != position){
+            nodeBeforeDelete = tempPtr;
+            tempPtr = tempPtr->next;
+            curPosition++;
+        }
+        nodeBeforeDelete->next = tempPtr->next;
+        tempPtr->next->prev = nodeBeforeDelete;
+        free(tempPtr);
+    }
+
+    pq->size--;
+}
+
+// //Keeping this for future reference, but do not need since I have append function now
+// /**
+//  * @brief - inserts a node into queue
+//  * */
+// void insertNode(PageQueue *pq, int position, PqNode* newNode, unsigned long pageNum){
+//     PqNode* nodeBeforeInsert = NULL;
+//     int length = pq->size;
+//     int curPosition = 0;
+//     PqNode* tempPtr = pq->head;
+
+//     newNode->pageNum = pageNum;
+
+//     if (pq->head == NULL) {
+//         pq->head = newNode;
+//         pq->tail = newNode;
+//         newNode->next = NULL;
+//         newNode->prev = NULL;
+//     }
+
+//     else if (position < 0 || position > length) {
+//         printf("Position not part of list");
+//         pqFree(pq);
+//         exit(1);
+//     }
+
+//     else if (position == 0){
+//         newNode->next = pq->head;
+//         newNode->prev = NULL;
+//         pq->head->prev = newNode;
+//         pq->head = newNode;
+//     }
+//     // insert after everything (last existing node is at length -1)
+//     else if (position == length ){
+//         newNode->prev = pq->tail;
+//         newNode->next = NULL;
+//         pq->tail->next = newNode;
+//         pq->tail = newNode;
+//     }
+
+//     else {    
+//         while (curPosition != position){
+//             nodeBeforeInsert = tempPtr;
+//             tempPtr = tempPtr->next;
+//             curPosition++;
+//         }
+//         newNode->next = tempPtr;
+//         nodeBeforeInsert->next = newNode;
+//         newNode->prev = nodeBeforeInsert;
+
+//         if (newNode->next != NULL){
+//             newNode->next->prev = newNode;
+//         }
+//     }
+//     pq->size++;
+// }

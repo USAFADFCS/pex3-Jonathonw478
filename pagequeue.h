@@ -60,4 +60,35 @@ void pqFree(PageQueue *pq);
  */
 void pqPrint(PageQueue *pq);
 
+/** createNode()
+ * @brief - allocates a Node and returns a pointer to it
+ * @param type - the type of node to create
+ * @param number - the number to store in the node (if applicable)
+ * @param operator - the operator to store in the node (if applicable)
+ * @return pointer to the allocated node or NULL if fails
+ */
+PqNode* createNode(unsigned long pageNum);
+
+/** insertNode()
+ * @brief - inserts a node into queue
+ * @param pq pointer to the PageQueue
+ * @param position postion of node in queue
+ * @param newNode pointer to the new node
+ * @param pageNum the page number being accessed
+ */
+void insertNode(PageQueue *pq, int position, PqNode* newNode, unsigned long pageNum);
+
+/** deleteNode(()
+ * @brief  - deletes a node in the queue
+ * @param pq - pointer to the page queue
+ * @param position position of node in queue
+ */
+void deleteNode(PageQueue* pq, int position);
+
+/** appendNode()
+ * @brief - addes a new node to the end of the queue
+ * @param pq- a ptr to the queue
+ * @param pageNum - the page number being appended
+ */
+void appendNode(PageQueue* pq, unsigned long pageNum);
 #endif  // PAGEQUEUE_H
