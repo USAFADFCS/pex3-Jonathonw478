@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
         //   printf("%d,%lu,%f\n", frameCount, faults[frameCount],
         //          (double)faults[frameCount] / (double)numAccesses);
     int frameCount = 0;
-    for (frameCount = 0; frameCount < maxFrames; frameCount++){
+    for (frameCount = 1; frameCount < maxFrames; frameCount++){
         printf("%d,%d,%f\n", frameCount, faults[frameCount], (double)faults[frameCount] / (double)numAccesses);
     }
     // TODO: Free your PageQueue and the faults[] array,
